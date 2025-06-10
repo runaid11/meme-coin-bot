@@ -2,6 +2,9 @@ from flask import Flask, request
 from telegram.ext import Application, CommandHandler
 import asyncio
 import threading
+import nest_asyncio
+nest_asyncio.apply()
+
 
 # ✅ Your bot token
 TOKEN = '7920309268:AAELcWXpPST_Anjr9gH4aorT1_fklKEJnl8'
