@@ -1,40 +1,40 @@
 from flask import Flask, request
-from telegram.ext import Application, CommandHandler
-import nest_asyncio
-import asyncio
+from telegram import Update
+from telegram.ext import Application, CommandHandler, ContextTypes
 import threading
+import asyncio
+import os
 
-# ✅ Your bot token
-TOKEN = '7920309268:AAELcWXpPST_Anjr9gH4aorT1_fklKEJnl8'
+# === Telegram Bot ===
+BOT_TOKEN = os.getenv('7920309268:AAELcWXpPST_Anjr9gH4aorT1_fklKEJnl8')  # Set this in Render environment variables
 
-# ✅ Flask app
 app = Flask(__name__)
 
+# === Flask Webhook Route ===
 @app.route('/webhook', methods=['POST'])
 def webhook():
     data = request.json
-    print("🚨 New Transaction Alert:", data)
-    return {'status': 'received'}
+    print("🔔 Webhook received:", data)
+    # You can enhance this to filter wallet, txs, etc.
+    return '', 200
 
-# ✅ Telegram command handler
-async def start(update, context):
+# === Telegram Bot Handlers ===
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("✅ Meme Coin AI Bot Activated!")
 
-# ✅ Telegram bot runner
+# === Run Telegram Bot ===
 async def run_telegram_bot():
-    application = Application.builder().token(TOKEN).build()
+    application = Application.builder().token(BOT_TOKEN).build()
     application.add_handler(CommandHandler("start", start))
     await application.run_polling()
 
-# ✅ Threaded bot runner
-def start_bot():
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    nest_asyncio.apply()  # Fix for RuntimeError
-    loop.run_until_complete(run_telegram_bot())
+# === Run Flask App on Port 5000 ===
+def run_flask():
+    app.run(host="0.0.0.0", port=5000)
 
-# ✅ Start thread
-threading.Thread(target=start_bot).start()
-
+# === Start Both (Flask + Telegram) ===
+if __name__ == "__main__":
+    threading.Thread(target=run_flask).start()
+    asyncio.run(run_telegram_bot())
 
 
