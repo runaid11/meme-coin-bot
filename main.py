@@ -5,8 +5,8 @@ import threading
 import asyncio
 import os
 
-# ✅ This line reads your token from Render's Environment Variables
-BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+# ✅ Secure token from environment variable
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 app = Flask(__name__)
 
@@ -16,20 +16,30 @@ def webhook():
     print("🔔 Webhook received:", data)
     return '', 200
 
+# ✅ Bot command
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("✅ Meme Coin AI Bot Activated!")
 
-async def run_telegram_bot():
-    application = Application.builder().token(BOT_TOKEN).build()
-    application.add_handler(CommandHandler("start", start))
-    await application.run_polling()
+# ✅ Telegram Bot Start
+def run_telegram():
+    async def main():
+        app = Application.builder().token(BOT_TOKEN).build()
+        app.add_handler(CommandHandler("start", start))
+        await app.run_polling()
 
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(main())
+
+# ✅ Flask App Start
 def run_flask():
     app.run(host="0.0.0.0", port=5000)
 
+# ✅ Run both services safely
 if __name__ == "__main__":
     threading.Thread(target=run_flask).start()
-    asyncio.run(run_telegram_bot())
+    threading.Thread(target=run_telegram).start()
+
 
 
 
