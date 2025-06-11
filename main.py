@@ -1,41 +1,42 @@
 from flask import Flask, request
 from telegram.ext import Application, CommandHandler
-import threading
 import asyncio
+import threading
+import nest_asyncio
 
-# ✅ Telegram Bot Token
+# ✅ Your bot token (replace with your real one)
 TOKEN = '7920309268:AAELcWXpPST_Anjr9gH4aorT1_fklKEJnl8'
 
-# ✅ Flask App
+# ✅ Flask app for Helius webhook
 app = Flask(__name__)
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
     data = request.json
-    print("🔔 New Transaction Alert:", data)
+    print("🚨 New Transaction Alert:", data)
     return {'status': 'received'}
 
-# ✅ Telegram Command Handler
+# ✅ Telegram /start command
 async def start(update, context):
     await update.message.reply_text("✅ Meme Coin AI Bot Activated!")
 
-# ✅ Run Telegram Bot in Background Thread
+# ✅ Start Telegram bot
 async def run_telegram_bot():
     application = Application.builder().token(TOKEN).build()
     application.add_handler(CommandHandler("start", start))
-    await application.initialize()
-    await application.start()
-    await application.updater.start_polling()
-    await application.updater.idle()
+    await application.run_polling()
 
-def start_bot_thread():
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(run_telegram_bot())
+# ✅ Patch event loop issues (for Render + Flask combo)
+nest_asyncio.apply()
 
-# ✅ Start both Flask + Telegram
-if __name__ == '__main__':
-    bot_thread = threading.Thread(target=start_bot_thread)
-    bot_thread.start()
+# ✅ Run Flask + Telegram bot together
+def run_flask():
     app.run(host='0.0.0.0', port=5000)
+
+if __name__ == '__main__':
+    # Start Flask in a thread
+    threading.Thread(target=run_flask).start()
+    # Run the Telegram bot
+    asyncio.run(run_telegram_bot())
+
 
