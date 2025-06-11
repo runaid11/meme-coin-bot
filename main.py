@@ -1,12 +1,13 @@
 from flask import Flask, request
 from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes
-import asyncio
-import threading
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import os
+import asyncio
 
+# ✅ Read token from environment
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
+# ✅ Flask setup
 app = Flask(__name__)
 
 @app.route('/webhook', methods=['POST'])
@@ -15,29 +16,25 @@ def webhook():
     print("🔔 Webhook received:", data)
     return '', 200
 
+# ✅ Telegram handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("✅ Meme Coin AI Bot Activated!")
 
-def run_flask():
-    app.run(host="0.0.0.0", port=5000)
+# ✅ Main entry point for both Flask + Bot
+async def main():
+    # Start Flask server in background
+    loop = asyncio.get_event_loop()
+    loop.run_in_executor(None, lambda: app.run(host="0.0.0.0", port=5000))
 
-def run_telegram_bot():
-    async def main():
-        application = Application.builder().token(BOT_TOKEN).build()
-        application.add_handler(CommandHandler("start", start))
-        await application.initialize()
-        await application.start()
-        print("✅ Telegram bot started")
-        await application.updater.start_polling()
-        await application.updater.idle()
-
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(main())
+    # Start Telegram bot
+    app_telegram = ApplicationBuilder().token(BOT_TOKEN).build()
+    app_telegram.add_handler(CommandHandler("start", start))
+    print("✅ Telegram bot is starting...")
+    await app_telegram.run_polling()
 
 if __name__ == "__main__":
-    threading.Thread(target=run_flask).start()
-    threading.Thread(target=run_telegram_bot).start()
+    asyncio.run(main())
+
 
 
 
