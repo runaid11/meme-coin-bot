@@ -26,14 +26,12 @@ async def main():
     app_bot.add_handler(CommandHandler("start", start))
     await app_bot.initialize()
     await app_bot.start()
+    print("🤖 Bot started and polling for /start")
     await app_bot.updater.start_polling()
     await app_bot.updater.idle()
 
 if __name__ == "__main__":
     asyncio.run(main())
-
-
-
 
 
 
